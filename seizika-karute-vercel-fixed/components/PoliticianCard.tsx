@@ -1,0 +1,1 @@
+// Politician card component code
