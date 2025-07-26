@@ -1,28 +1,52 @@
-export default function Home(props: any) {
-  const { data, error } = props;
-  if (error) return <pre>{error}</pre>;
-  if (!data) return <p>loading...</p>;
+
+import { GetServerSideProps } from "next";
+
+type Politician = {
+  名前: string;
+  生年月日?: string;
+  満年齢?: number;
+};
+
+export default function Home({ data }: { data: Politician[] }) {
   return (
-    <main style={{ padding: 24 }}>
-      <h1>みえる政治家カルテ（仮）</h1>
-      <p>({data.length} 件)</p>
-      <ul>
-        {data.map((r: any) => {
-          const f = r.fields || {};
-          return <li key={r.id}>{f.name || f.氏名 || '(名前未設定)'}</li>;
-        })}
-      </ul>
-    </main>
+    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+      <h1>政治家リスト</h1>
+      <table border={1} cellPadding={8}>
+        <thead>
+          <tr>
+            <th>名前</th>
+            <th>生年月日</th>
+            <th>満年齢</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item, i) => (
+            <tr key={i}>
+              <td>{item.名前}</td>
+              <td>{item.生年月日 || "不明"}</td>
+              <td>{item.満年齢 ?? "不明"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
-export async function getServerSideProps() {
-  try {
-    const res = await fetch(`${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'}/api/politicians`);
-    const data = await res.json();
-    if (!res.ok) return { props: { data: null, error: JSON.stringify(data, null, 2) } };
-    return { props: { data } };
-  } catch (e: any) {
-    return { props: { data: null, error: e?.message ?? 'unknown error' } };
-  }
-}
+export const getServerSideProps: GetServerSideProps = async () => {
+  const token = process.env.AIRTABLE_TOKEN;
+  const base = process.env.AIRTABLE_BASE;
+  const table = process.env.AIRTABLE_TABLE;
+
+  const res = await fetch(
+    `https://api.airtable.com/v0/${base}/${encodeURIComponent(table!)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  const json = await res.json();
+  const data = json.records.map((r: any) => r.fields);
+  return { props: { data } };
+};
