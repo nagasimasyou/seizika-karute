@@ -1,1 +1,0 @@
-// Top page with card layout
