@@ -1,3 +1,3 @@
 export default function Home() {
-  return <h1>みえる政治家カルテ（仮）</h1>
+  return <div>みえる政治家カルテ（準備中）</div>;
 }
